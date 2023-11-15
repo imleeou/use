@@ -1,0 +1,43 @@
+# Extensions list
+
+- AMiner.codegeex
+- antfu.icons-carbon
+- antfu.unocss
+- ChakrounAnas.turbo-console-log
+- christian-kohler.path-intellisense
+- dbaeumer.vscode-eslint
+- donjayamanne.githistory
+- eamodio.gitlens
+- EditorConfig.EditorConfig
+- esbenp.prettier-vscode
+- formulahendry.auto-close-tag
+- formulahendry.auto-rename-tag
+- GitHub.copilot
+- GitHub.copilot-chat
+- Gruntfuggly.todo-tree
+- hollowtree.vue-snippets
+- intellsmi.comment-translate
+- kisstkondoros.vscode-gutter-preview
+- leeou.variableformatter
+- LeetCode.vscode-leetcode
+- lihui.vs-color-picker
+- MS-CEINTL.vscode-language-pack-zh-hans
+- ms-vscode-remote.remote-wsl
+- octref.vetur
+- oderwat.indent-rainbow
+- ritwickdey.LiveServer
+- rvest.vs-code-prettier-eslint
+- shalldie.background
+- shd101wyy.markdown-preview-enhanced
+- steoates.autoimport
+- streetsidesoftware.code-spell-checker
+- stylelint.vscode-stylelint
+- techer.open-in-browser
+- usernamehw.errorlens
+- vincaslt.highlight-matching-tag
+- vscode-icons-team.vscode-icons
+- Vue.volar
+- Vue.vscode-typescript-vue-plugin
+- YRM.type-challenges
+- yzhang.markdown-all-in-one
+zhuangtongfa.material-theme
