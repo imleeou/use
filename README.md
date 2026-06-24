@@ -21,3 +21,8 @@ Things I am using
 - [crxMouse Chrome™ 手势](https://chromewebstore.google.com/detail/crxmouse-chrome-%E6%89%8B%E5%8A%BF/jlgkpaicikihijadgifklkbpdajbkhjo) - 鼠标手势,超级拖曳,滚轮手势,摇杆手势,平滑滚动,标签页列表等（mac 不需要）。
 - [Automa](https://chrome.google.com/webstore/detail/infppggnoaenmfagbfknfkancpbljcca) - An extension for automating your browser by connecting blocks
 - [ColorZilla](https://chrome.google.com/webstore/detail/bhlhnicpbhignbdhedgjhgdocnmhomnp) - 高级吸管、拾色器、渐变生成器和其他与颜色相关的实用工具
+
+## VPN 
+
+- [良心云](https://xn--9kqz23b19z.com/#/register?code=4Ixj2tsa) - 6R/month/1000G or 21R/1000G
+- [赔钱机场](https://xn--mes358aby2apfg.com/register?code=mu8OFFS9&cover=sfw) - 6R/month/1000G or 18.9R/1000G
