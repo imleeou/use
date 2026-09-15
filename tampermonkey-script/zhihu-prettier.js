@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         知乎美化
 // @namespace    http://tampermonkey.net/
-// @version      2026.8.31
-// @description  1.【重要更新】增加夜间模式按钮     2.知乎题目栏增加举报、匿名、问题日志、快捷键四个按钮     3.知乎按钮图标在鼠标悬停时变色(题目按钮、回答下方按钮、评论按钮等)     4.回答的发布时间移至顶部     5.图片原图显示     6.文字和卡片链接从知乎跳转链接改为直链     7.隐藏侧边栏     8.GIF图自动播放【默认不开启】     9.问题增加创建时间和最后编辑时间     10.鼠标悬停在回答时显示浅蓝色聚焦框    11.引用角标高亮    12.首页信息流增加不感兴趣按钮  13.【重要更新】增加设置界面    14.显示信息流标签【默认不开启】
+// @version      2026.9.15
+// @description  知乎美化，共 15 项功能，详见脚本顶部功能列表
 // @author       原作者AN drew
 // @match        *://*.zhihu.com/*
 // @match        https://v.vzuu.com/video/*
@@ -25,6 +25,25 @@
 // @updateURL https://update.greasyfork.org/scripts/402808/%E7%9F%A5%E4%B9%8E%E7%BE%8E%E5%8C%96.meta.js
 // ==/UserScript==
 
+/*
+功能列表：
+1. 增加夜间模式按钮【重要更新】
+2. 知乎题目栏增加举报、匿名、问题日志、快捷键四个按钮
+3. 知乎按钮图标在鼠标悬停时变色(题目按钮、回答下方按钮、评论按钮等)
+4. 回答的发布时间移至顶部
+5. 图片原图显示
+6. 文字和卡片链接从知乎跳转链接改为直链
+7. 隐藏侧边栏
+8. GIF图自动播放【默认不开启】
+9. 问题增加创建时间和最后编辑时间
+10. 鼠标悬停在回答时显示浅蓝色聚焦框
+11. 引用角标高亮
+12. 首页信息流增加不感兴趣按钮
+13. 增加设置界面【重要更新】
+14. 显示信息流标签【默认不开启】
+15. 文章图片缩略图【默认不开启】
+*/
+
 class ZhihuConfig {
 	constructor() {
 		// 定义配置项
@@ -44,6 +63,7 @@ class ZhihuConfig {
 			{ name: "GIFAutoPlay", label: "GIF自动播放", type: "checkbox", default: "0" },
 			{ name: "hoverShadow", label: "悬停时显示浅蓝色边框", type: "checkbox", default: "1" },
 			{ name: "blockingPictureVideo", label: "隐藏图片/视频", type: "checkbox", default: "0" },
+			{ name: "imageThumbnail", label: "文章图片缩略图", type: "checkbox", default: "0" },
 			{ name: "flowTag", label: "显示信息流标签", type: "checkbox", default: "0" },
 			{ name: "prefersColorScheme", label: "跟随系统夜间模式", type: "checkbox", default: "0" },
 			{ name: "hideFeedSource", label: "隐藏动态来源", type: "checkbox", default: "1" },
@@ -4100,6 +4120,37 @@ function originalPic() {
 		$("img").each(function () {
 			if ($(this).attr("data-original") != undefined && !$(this).hasClass("comment_sticker")) {
 				if ($(this).attr("src") != $(this).attr("data-original")) $(this).attr("src", $(this).attr("data-original"));
+			}
+		});
+	}
+}
+
+//文章图片默认缩略图，点击恢复原图
+function imageThumbnail() {
+	if (Config.currentValues.imageThumbnail == 1) {
+		//缩略图样式（只添加一次）
+		if ($("#image-thumbnail-style").length == 0) {
+			GM_addStyle(`
+/*文章图片缩略图*/
+.RichContent img.zhihu-thumbnail {
+    max-width: 150px !important;
+    max-height: 150px !important;
+    cursor: zoom-in !important;
+}
+			`).id = "image-thumbnail-style";
+		}
+
+		$(".RichContent img.origin_image").each(function () {
+			//已点击恢复原图的不再处理
+			if ($(this).data("thumb-restored")) return;
+
+			//首次标记为缩略图，并绑定一次性点击事件
+			if (!$(this).hasClass("zhihu-thumbnail")) {
+				$(this).addClass("zhihu-thumbnail");
+				$(this).one("click", function () {
+					$(this).removeClass("zhihu-thumbnail");
+					$(this).data("thumb-restored", true);
+				});
 			}
 		});
 	}
@@ -16926,6 +16977,7 @@ html[data-theme=dark] #settingLayer #settings-close{
 	setInterval(directLink, 100);
 	setInterval(iconColor, 100);
 	setInterval(originalPic, 100);
+	setInterval(imageThumbnail, 100);
 	setInterval(gifPlaying, 100);
 
 	//清空搜索框占位符
