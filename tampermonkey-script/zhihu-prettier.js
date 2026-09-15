@@ -973,31 +973,31 @@ function directLink() {
 	}
 
 	// ---- 文字链接 ----
-	$("a.external").each(function () {
+	$("a.external:not([data-zhihu-link])").each(function () {
 		var new_href = resolveZhihuLink($(this));
-		$(this).attr("href", new_href);
+		$(this).attr("href", new_href).attr("data-zhihu-link", "done");
 	});
 
 	// ---- 卡片链接 ----
-	$("a.LinkCard:not(.MCNLinkCard):not(.ZVideoLinkCard):not(.ADLinkCardContainer)").each(function () {
+	$("a.LinkCard:not(.MCNLinkCard):not(.ZVideoLinkCard):not(.ADLinkCardContainer):not([data-zhihu-link])").each(function () {
 		var $this = $(this);
 		var title = $this.find(".LinkCard-title").text();
 		var desc = $this.find(".LinkCard-desc").text();
 		var fallback = title.indexOf("http") > -1 ? title : desc;
 		var new_href = resolveZhihuLink($this, fallback);
-		$this.attr("href", new_href);
+		$this.attr("href", new_href).attr("data-zhihu-link", "done");
 	});
 
 	// ---- 旧版视频卡片链接 ----
-	$("a.VideoCard-link").each(function () {
+	$("a.VideoCard-link:not([data-zhihu-link])").each(function () {
 		var new_href = resolveZhihuLink($(this));
-		$(this).attr("href", new_href);
+		$(this).attr("href", new_href).attr("data-zhihu-link", "done");
 	});
 
 	// ---- 古早视频卡片链接 ----
-	$("a.video-box").each(function () {
+	$("a.video-box:not([data-zhihu-link])").each(function () {
 		var new_href = resolveZhihuLink($(this));
-		$(this).attr("href", new_href);
+		$(this).attr("href", new_href).attr("data-zhihu-link", "done");
 	});
 
 	// ---- 隐藏广告卡片 ----
@@ -4097,7 +4097,8 @@ function column() {
 function originalPic() {
 	if (Config.currentValues.blockingPictureVideo == 1) //隐藏图片/视频
 	{
-		$("img").each(function () {
+		//已处理的图片都有 .hide 标记，查询阶段直接跳过，避免每轮全量遍历
+		$("img:not(.hide)").each(function () {
 			if (
 				$(this).closest(".RichContent-cover").length > 0 &&
 				!$(this).closest(".RichContent-cover").hasClass("hide")
@@ -4118,10 +4119,10 @@ function originalPic() {
 		});
 		$(".TitleImage").hide(); //隐藏专栏文章封面图
 	} else {
-		$("img").each(function () {
-			if ($(this).attr("data-original") != undefined && !$(this).hasClass("comment_sticker")) {
-				if ($(this).attr("src") != $(this).attr("data-original")) $(this).attr("src", $(this).attr("data-original"));
-			}
+		//已处理的原图打上标记，避免每轮重复改写 src
+		$("img[data-original]:not(.comment_sticker):not([data-zhihu-pic])").each(function () {
+			if ($(this).attr("src") != $(this).attr("data-original")) $(this).attr("src", $(this).attr("data-original"));
+			$(this).attr("data-zhihu-pic", "done");
 		});
 	}
 }
@@ -4141,7 +4142,7 @@ function imageThumbnail() {
 			`).id = "image-thumbnail-style";
 		}
 
-		$(".RichContent img.origin_image").each(function () {
+		$(".RichContent img.origin_image:not(.zhihu-thumbnail)").each(function () {
 			//已点击恢复原图的不再处理
 			if ($(this).data("thumb-restored")) return;
 
@@ -16903,25 +16904,25 @@ function floatSettingButton() {
 		}, 500);
 	});
 
-	// 拖拽（纵向）
+	// 拖拽（纵向）：仅在拖拽期间绑定 mousemove/mouseup，避免全局常驻监听
 	btn.on("mousedown", function (e) {
 		dragging = true;
 		moved = false;
 		startY = e.clientY;
 		startTop = parseInt(btn.css("top"));
 		e.preventDefault();
-	});
 
-	$(document).on("mousemove", function (e) {
-		if (!dragging) return;
-		let newTop = startTop + (e.clientY - startY);
-		if (Math.abs(e.clientY - startY) > 3) moved = true;
-		newTop = Math.max(0, Math.min(window.innerHeight - 36, newTop));
-		btn.css("top", newTop + "px");
-	});
-
-	$(document).on("mouseup", function () {
-		dragging = false;
+		$(document)
+			.on("mousemove.zhihuSetBtn", function (e) {
+				let newTop = startTop + (e.clientY - startY);
+				if (Math.abs(e.clientY - startY) > 3) moved = true;
+				newTop = Math.max(0, Math.min(window.innerHeight - 36, newTop));
+				btn.css("top", newTop + "px");
+			})
+			.on("mouseup.zhihuSetBtn", function () {
+				dragging = false;
+				$(document).off("mousemove.zhihuSetBtn mouseup.zhihuSetBtn");
+			});
 	});
 
 	// 点击打开设置（拖拽后不触发）
@@ -17066,17 +17067,20 @@ function floatSettingButton() {
 	//添加自定义CSS
 	addCSS();
 
-	//全局功能函数
-	setInterval(directLink, 100);
-	setInterval(iconColor, 100);
-	setInterval(originalPic, 100);
-	setInterval(imageThumbnail, 100);
-	setInterval(gifPlaying, 100);
+	//全局功能函数：合并为单个低频轮询，避免多个 100ms 定时器反复全量扫描 DOM
+	var globalTickMs = 500;
+	setInterval(function () {
+		directLink();
+		iconColor();
+		originalPic();
+		imageThumbnail();
+		gifPlaying();
+	}, globalTickMs);
 
 	//清空搜索框占位符
 	setInterval(function () {
 		$(".SearchBar-input input").attr("placeholder", "");
-	}, 100);
+	}, globalTickMs);
 
 	//折叠谢邀
 	let timer = setInterval(function () {
@@ -17099,7 +17103,7 @@ function floatSettingButton() {
 				}
 			});
 		}
-	}, 100);
+	}, globalTickMs);
 
 	//剪切板仅保留选中内容
 	//代码来源：https://greasyfork.org/scripts/367724
@@ -17172,6 +17176,7 @@ function floatSettingButton() {
 			this.currentPath = ""; // 记录当前页面 URL，防止重复触发
 			this.observer = null; // MutationObserver 实例
 			this.fallbackTimer = null; // 兜底定时器
+			this.rafId = null; // requestAnimationFrame 合并任务 id
 			this.initRouter(); // 初始化 URL 变更监听
 		}
 
@@ -17216,6 +17221,10 @@ function floatSettingButton() {
 				this.observer.disconnect();
 				this.observer = null;
 			}
+			if (this.rafId) {
+				cancelAnimationFrame(this.rafId);
+				this.rafId = null;
+			}
 			if (this.fallbackTimer) {
 				clearTimeout(this.fallbackTimer);
 				this.fallbackTimer = null;
@@ -17247,6 +17256,10 @@ function floatSettingButton() {
 				if (!persistent) {
 					if (this.observer) this.observer.disconnect();
 					if (this.fallbackTimer) clearTimeout(this.fallbackTimer);
+					if (this.rafId) {
+						cancelAnimationFrame(this.rafId);
+						this.rafId = null;
+					}
 				}
 			};
 
@@ -17264,12 +17277,16 @@ function floatSettingButton() {
 				}
 			}, 3000);
 
-			// 3. 监听 DOM
-			this.observer = new MutationObserver((mutations) => {
-				if (document.querySelector(selector)) {
-					isFirstMatch = false;
-					execute();
-				}
+			// 3. 监听 DOM：用 requestAnimationFrame 合并同一帧内的多次 DOM 变更，避免每次变更都执行 querySelector
+			this.observer = new MutationObserver(() => {
+				if (this.rafId) return; // 已有待合并的检查任务
+				this.rafId = requestAnimationFrame(() => {
+					this.rafId = null;
+					if (document.querySelector(selector)) {
+						isFirstMatch = false;
+						execute();
+					}
+				});
 			});
 
 			this.observer.observe(document.body, { childList: true, subtree: true });
