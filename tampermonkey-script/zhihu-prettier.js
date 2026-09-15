@@ -2,7 +2,7 @@
 // @name         知乎美化
 // @namespace    http://tampermonkey.net/
 // @version      2026.9.15
-// @description  知乎美化，共 15 项功能，详见脚本顶部功能列表
+// @description  知乎美化，共 16 项功能，详见脚本顶部功能列表
 // @author       原作者AN drew
 // @match        *://*.zhihu.com/*
 // @match        https://v.vzuu.com/video/*
@@ -42,6 +42,7 @@
 13. 增加设置界面【重要更新】
 14. 显示信息流标签【默认不开启】
 15. 文章图片缩略图【默认不开启】
+16. 页面悬浮设置按钮（可拖动，自动收起）
 */
 
 class ZhihuConfig {
@@ -16842,6 +16843,95 @@ html[data-theme=dark] #settingLayer #settings-close{
 	});
 }
 
+// 页面悬浮设置按钮：可拖动，不操作时收起为边缘小箭头，点击打开设置
+function floatSettingButton() {
+	if ($("#zhihu-set-btn").length > 0) return;
+
+	GM_addStyle(`
+#zhihu-set-btn {
+    position: fixed;
+    top: 200px;
+    right: 0;
+    z-index: 999998;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    background: #0084ff;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 6px 0 0 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: transform .25s ease;
+}
+#zhihu-set-btn .zhihu-set-tab {
+    width: 26px;
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: 16px;
+}
+#zhihu-set-btn .zhihu-set-text {
+    padding: 0 10px 0 0;
+}
+#zhihu-set-btn.collapsed {
+    transform: translateX(calc(100% - 26px));
+}
+	`).id = "zhihu-set-btn-style";
+
+	$("body").append('<div id="zhihu-set-btn" title="知乎美化设置"><span class="zhihu-set-tab">❮</span><span class="zhihu-set-text">设置</span></div>');
+
+	const btn = $("#zhihu-set-btn");
+	btn.addClass("collapsed");
+
+	let dragging = false;
+	let moved = false;
+	let startY = 0;
+	let startTop = 0;
+
+	// 悬停展开
+	btn.on("mouseenter", function () {
+		btn.removeClass("collapsed");
+	});
+
+	// 离开后延迟收起
+	btn.on("mouseleave", function () {
+		if (dragging) return;
+		setTimeout(function () {
+			if (!btn.is(":hover")) btn.addClass("collapsed");
+		}, 500);
+	});
+
+	// 拖拽（纵向）
+	btn.on("mousedown", function (e) {
+		dragging = true;
+		moved = false;
+		startY = e.clientY;
+		startTop = parseInt(btn.css("top"));
+		e.preventDefault();
+	});
+
+	$(document).on("mousemove", function (e) {
+		if (!dragging) return;
+		let newTop = startTop + (e.clientY - startY);
+		if (Math.abs(e.clientY - startY) > 3) moved = true;
+		newTop = Math.max(0, Math.min(window.innerHeight - 36, newTop));
+		btn.css("top", newTop + "px");
+	});
+
+	$(document).on("mouseup", function () {
+		dragging = false;
+	});
+
+	// 点击打开设置（拖拽后不触发）
+	btn.on("click", function () {
+		if (moved) return;
+		$("#settingLayerMask").show();
+		btn.addClass("collapsed");
+	});
+}
+
 (function () {
 	"use strict";
 
@@ -16964,6 +17054,9 @@ html[data-theme=dark] #settingLayer #settings-close{
 
 	//设置界面
 	settings();
+
+	//页面悬浮设置按钮
+	floatSettingButton();
 
 	//注册设置按钮
 	GM_registerMenuCommand("知乎 美化 设置", function () {
