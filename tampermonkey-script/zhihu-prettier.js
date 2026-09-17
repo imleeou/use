@@ -4173,6 +4173,10 @@ html[data-theme=dark] .css-1qefhqu {
     background-color: #1A1A1A
 }
 
+html[data-theme=dark] .css-shliqe {
+    background-color: unset
+}
+
 html[data-theme=dark] .LeftItem {
     color: #606A80
 }
